@@ -143,10 +143,62 @@ const links=e=>e.loc?`<p class="mt">🔗 GitHub: <a href="${GH}main/exercises/${
 const skel=f=>`<h4>${esc(f.n)}</h4><pre>${f.s.map(s=>s[0]==="g"?`<span class="todo">    // ✏️ এখানে তোমার কোড লেখো\n</span>`:s[0]==="h"?`<span class="hint">${esc(s[1])}</span>`:esc(s[1])).join("")}</pre>`;
 const sol=f=>`<h4>${esc(f.n)}</h4><pre>${f.s.filter(s=>s[0]!=="h").map(s=>esc(s[1])+(s[0]==="g"?"\n":"")).join("")}</pre>`;
 const LB=(L,k,t)=>`<button data-l="${k}" class="${L===k?"on":""}">${t}</button>`;
+const TUT={
+c1:[["p","এই চ্যাপ্টারে শুধু প্রজেক্টের কাঠামো, ফাংশন, কমেন্ট ও টেস্ট চালানো শিখবে।"],
+["li","ফাংশন: fn নাম(প্যারামিটার: টাইপ) -> রিটার্নটাইপ { ... }"],
+["li","শেষ লাইনে সেমিকোলন না দিলে সেটাই রিটার্ন ভ্যালু (implicit return)।"],
+["li","কমেন্ট: // এক লাইন, /// ডকুমেন্টেশন। কম্পাইলার এগুলো উপেক্ষা করে।"],
+["li","println!(\"{}\", x) দিয়ে প্রিন্ট; ! মানে এটি ম্যাক্রো।"],
+["code",`fn greeting() -> &'static str {\n    \"Hello\"   // সেমিকোলন নেই = রিটার্ন\n}\n\n#[cfg(test)]\nmod tests {\n    use super::*;\n    #[test]\n    fn t() { assert_eq!(greeting(), \"Hello\"); }\n}`],
+["p","চালাতে: cargo test। todo!() বা TODO যেখানে আছে সেখানেই কোড লিখতে হবে।"]],
+c2:[["p","এখানে ইন্টিজার, ভেরিয়েবল, if/else, লুপ, প্যানিক ও ওভারফ্লো শিখবে।"],
+["li","ভেরিয়েবল ডিফল্টে immutable; বদলাতে let mut। একই নামে আবার let দিলে shadowing।"],
+["li","টাইপ: i8..i128, u8..u128, isize/usize। টাইপ বদলাতে as: x as u64। ভিন্ন টাইপ নিজে নিজে মেশে না।"],
+["li","if একটি expression, তাই let v = if c { 1 } else { 2 }; লেখা যায়।"],
+["li","লুপ: while শর্ত { }, loop { break; }। ওভারফ্লোতে debug মোডে panic, তাই wrapping_add/checked_add ব্যবহার করা যায়।"],
+["code",`fn speed(start: u32, end: u32, t: u32) -> u32 {\n    let distance = end - start;      // টাইপ ইনফার হয়\n    distance / t\n}\n\nfn factorial(n: u32) -> u32 {\n    let mut r = 1;\n    let mut i = 1;\n    while i <= n { r *= i; i += 1; }\n    r\n}\n\nlet big = 255u8.wrapping_add(1);   // 0\nlet ok  = 250u8.checked_add(10);   // None`]],
+c3:[["p","struct বানানো, ভ্যালিডেশন, মডিউল/প্রাইভেসি এবং ownership এখানে মূল বিষয়।"],
+["li","struct Ticket { title: String, status: String } এবং impl ব্লকে মেথড; new() সাধারণত কনস্ট্রাক্টর।"],
+["li","&self = শুধু পড়া, &mut self = বদলানো, self = ownership নিয়ে নেওয়া।"],
+["li","মডিউল: mod m { pub fn f() {} }। pub ছাড়া সব প্রাইভেট, তাই ফিল্ড প্রাইভেট রেখে getter দাও (encapsulation)।"],
+["li","Ownership: এক মানের এক মালিক; মুভ হলে পুরনো ভেরিয়েবল আর চলে না। ধার নিতে &T বা &mut T।"],
+["li","ভুল ইনপুটে panic!(\"msg\") বা assert! ব্যবহার করে ভ্যালিডেশন করো।"],
+["code",`pub struct Ticket { title: String, status: String }\n\nimpl Ticket {\n    pub fn new(title: String, status: String) -> Self {\n        if title.is_empty() { panic!(\"Title cannot be empty\"); }\n        Ticket { title, status }\n    }\n    pub fn title(&self) -> &str { &self.title }\n    pub fn set_status(&mut self, s: String) { self.status = s; }\n}`]],
+c4:[["p","trait হলো আচরণের চুক্তি; অন্য ভাষার interface-এর মতো।"],
+["li","trait Shape { fn area(&self) -> f64; } তারপর impl Shape for Circle { ... }"],
+["li","#[derive(Debug, Clone, PartialEq)] দিলে ঝামেলা ছাড়াই ট্রেইট পাওয়া যায়।"],
+["li","অপারেটর ওভারলোড: impl Add for T (type Output)। কনভার্শন: impl From<A> for B, তারপর b.into()।"],
+["li","জেনেরিক বাউন্ড: fn show<T: Display>(x: T)। রিসোর্স পরিষ্কার করতে impl Drop।"],
+["code",`use std::fmt;\n\ntrait Shape { fn area(&self) -> f64; }\nstruct Sq(f64);\nimpl Shape for Sq { fn area(&self) -> f64 { self.0 * self.0 } }\n\nimpl fmt::Display for Sq {\n    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {\n        write!(f, \"Sq({})\", self.0)\n    }\n}\nimpl From<f64> for Sq { fn from(v: f64) -> Self { Sq(v) } }`]],
+c5:[["p","enum, match, Option ও Result দিয়ে নিরাপদ মডেল ও এরর হ্যান্ডলিং।"],
+["li","enum Status { ToDo, InProgress { assignee: String }, Done }। match অবশ্যই সব ভ্যারিয়েন্ট ঢাকবে।"],
+["li","Option<T> = Some(v) বা None; Result<T,E> = Ok(v) বা Err(e)।"],
+["li","? অপারেটর Err হলে সরাসরি রিটার্ন করে। unwrap() Err/None-এ panic করে, তাই সাবধানে।"],
+["li","TryFrom দিয়ে ফেইল হতে পারে এমন কনভার্শন; কাস্টম এরর enum-এ Display ও Error ইমপ্লিমেন্ট করো (thiserror ক্রেট সহজ করে)।"],
+["code",`enum Status { ToDo, Done }\n\nimpl TryFrom<&str> for Status {\n    type Error = String;\n    fn try_from(s: &str) -> Result<Self, Self::Error> {\n        match s.to_lowercase().as_str() {\n            \"todo\" => Ok(Status::ToDo),\n            \"done\" => Ok(Status::Done),\n            _ => Err(format!(\"invalid: {s}\")),\n        }\n    }\n}\n\nfn parse(s: &str) -> Result<Status, String> {\n    let st = Status::try_from(s)?;   // ? এরর উপরে পাঠায়\n    Ok(st)\n}`]],
+c6:[["p","Vec, HashMap, iterator, closure ও lifetime এই চ্যাপ্টারের মূল।"],
+["li","Vec: let mut v = Vec::new(); v.push(1); v[0]; v.len()। স্লাইস: &v[1..3]।"],
+["li","Iterator: v.iter().map(|x| x * 2).filter(|x| *x > 2).collect::<Vec<_>>()। iter = ধার, into_iter = মালিকানা।"],
+["li","HashMap: m.insert(k, v); m.get(&k) -> Option; BTreeMap সর্টেড থাকে।"],
+["li","Closure: |a, b| a + b। Lifetime: fn longest<'a>(x: &'a str, y: &'a str) -> &'a str, মানে রিটার্ন রেফারেন্স ইনপুটের সমান আয়ু পাবে।"],
+["code",`use std::collections::HashMap;\n\nfn main() {\n    let v = vec![1, 2, 3, 4];\n    let sum: i32 = v.iter().sum();\n    let even: Vec<i32> = v.iter().filter(|x| *x % 2 == 0).cloned().collect();\n\n    let mut m: HashMap<String, u32> = HashMap::new();\n    m.insert(\"a\".to_string(), 1);\n    if let Some(x) = m.get(\"a\") { println!(\"{x} {sum} {even:?}\"); }\n}`]],
+c7:[["p","থ্রেড, চ্যানেল ও শেয়ার্ড স্টেট; Rust কম্পাইল টাইমেই data race আটকায়।"],
+["li","thread::spawn(move || { ... }) নতুন থ্রেড; handle.join().unwrap() দিয়ে অপেক্ষা। move-এ ভ্যালুর মালিকানা থ্রেডে যায়।"],
+["li","চ্যানেল: let (tx, rx) = mpsc::channel(); tx.send(v).unwrap(); rx.recv()। কয়েক প্রডিউসারের জন্য tx.clone()।"],
+["li","শেয়ার করতে Arc<Mutex<T>>; ব্যবহারে let mut g = m.lock().unwrap();। শুধু পড়া বেশি হলে RwLock।"],
+["li","thread::scope(|s| { s.spawn(|| ...); }) দিয়ে লোকাল ডেটা ধার নেওয়া যায়, move লাগে না।"],
+["code",`use std::sync::{Arc, Mutex, mpsc};\nuse std::thread;\n\nfn main() {\n    let c = Arc::new(Mutex::new(0));\n    let hs: Vec<_> = (0..4).map(|_| {\n        let c = Arc::clone(&c);\n        thread::spawn(move || { *c.lock().unwrap() += 1; })\n    }).collect();\n    for h in hs { h.join().unwrap(); }\n\n    let (tx, rx) = mpsc::channel();\n    thread::spawn(move || tx.send(42).unwrap());\n    println!(\"{} {}\", *c.lock().unwrap(), rx.recv().unwrap());\n}`]],
+c8:[["p","async fn আসলে Future ফেরত দেয়; .await না করলে কিছুই চলে না।"],
+["li","Cargo.toml-এ tokio = { version = \"1\", features = [\"full\"] } লাগে; এন্ট্রি পয়েন্ট #[tokio::main]।"],
+["li","tokio::spawn(async { ... }) দিয়ে টাস্ক চালাও, handle.await দিয়ে ফল নাও। কয়েকটা একসাথে চালাতে tokio::join!।"],
+["li","টাস্কে মান পাঠাতে হলে সেটি Send হতে হবে। async-এর ভেতরে ব্লকিং কাজ (যেমন thread::sleep) এড়াও, tokio::time::sleep ব্যবহার করো।"],
+["code",`use tokio::time::{sleep, Duration};\n\nasync fn work(n: u32) -> u32 {\n    sleep(Duration::from_millis(100)).await;\n    n * 2\n}\n\n#[tokio::main]\nasync fn main() {\n    let h = tokio::spawn(work(5));\n    let (a, b) = tokio::join!(work(1), work(2));\n    println!(\"{} {} {}\", h.await.unwrap(), a, b);\n}`]]
+};
+const tut=x=>TUT[x.id]?`<details class="sub tut" open><summary>📘 এই চ্যাপ্টারের সিনট্যাক্স + টিউটোরিয়াল</summary>${blocks(TUT[x.id])}</details>`:"";
 function chLearn(x){
   const L=P.lang||"both",d=D(),n=x.ex.length,dn=x.ex.filter(e=>d[e.n]).length;
   $("#body").innerHTML=
-  `<div class="chead"><div><b>${n}টি এক্সারসাইজ</b><span>সম্পন্ন: <i id="dc">${dn}</i>/${n}</span></div><div class="bar"><i id="db" style="width:${dn/n*100}%"></i></div><div class="how0">প্রতিটি কার্ডে এই ক্রমে এগোও: <b>প্রশ্ন → কীভাবে করবে → টেস্ট → কোড → সমাধান</b>। পিসিতে রান করার নিয়ম প্রথম পেজ "কমপ্রিহেনসিভ রাস্ট"-এ আছে।</div></div>`+
+  `<div class="chead"><div><b>${n}টি এক্সারসাইজ</b><span>সম্পন্ন: <i id="dc">${dn}</i>/${n}</span></div><div class="bar"><i id="db" style="width:${dn/n*100}%"></i></div><div class="how0">প্রতিটি কার্ডে এই ক্রমে এগোও: <b>প্রশ্ন → কীভাবে করবে → টেস্ট → কোড → সমাধান</b>। পিসিতে রান করার নিয়ম প্রথম পেজ "কমপ্রিহেনসিভ রাস্ট"-এ আছে।</div></div>${tut(x)}`+
   `<div class="tabs lg">${LB(L,"both","বাংলা + English")}${LB(L,"bn","শুধু বাংলা")}${LB(L,"en","শুধু English")}<button id="ao">সব খোলো</button><button id="ac">সব বন্ধ</button></div>`+
   `<div class="toc">${x.ex.map((e,i)=>`<button data-i="${i}" class="${d[e.n]?"dn":""}">${e.n||i+1}</button>`).join("")}</div>`+
   x.ex.map((e,i)=>`<details class="ex card">${head(e,i,d[e.n]?"✓ সম্পন্ন":"")}<div class="cbody">${chips(e)}${qsec(e,L)}${howto(e)}${tsec(e)}${(e.f||[]).length?sec("✏️","কোড (skeleton)",e.f.map(skel).join("")):""}${hasGap(e)?`<details class="sub"><summary>💡 সমাধান দেখো (আগে নিজে চেষ্টা করো)</summary>${e.f.map(sol).join("")}</details>`:""}${links(e)}${!noDesc(e)&&e.b&&e.b.length>1?`<details class="sub"><summary>📋 মূল নির্দেশনা ও নোট (English)</summary>${blocks(e.b.slice(1))}</details>`:""}<button class="btn alt dm">${d[e.n]?"✓ সম্পন্ন (চিহ্ন তুলে নাও)":"✓ আমি করেছি"}</button></div></details>`).join("");
